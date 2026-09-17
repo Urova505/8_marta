@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Весенняя Фантазия 8 Марта 🌸</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --accent-purple: #9b59b6;
+            --accent-lavender: #f3e5f5;
+            --text-main: #2c3e50;
+            --glass-bg: rgba(255, 255, 255, 0.92);
+            --success: #27ae60;
+            --error: #e74c3c;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+
+        body {
+            background: url('images/titul.png') no-repeat center center fixed;
+            background-size: cover;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        #quiz-window {
+            width: 90%;
+            max-width: 900px;
+            height: 90vh;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border-radius: 30px;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            position: relative;
+        }
+
+        .header {
+            padding: 20px 30px;
+            background: linear-gradient(135deg, #ffffff 0%, var(--accent-lavender) 100%);
+            border-bottom: 1px solid rgba(155, 89, 182, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--accent-purple);
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+            scroll-behavior: smooth;
+        }
+
+        #start-screen {
+            text-align: center;
+            padding: 60px 20px;
+            background: linear-gradient(180deg, rgba(255,255,255,0) 0%, var(--accent-lavender) 100%);
+            border-radius: 25px;
+            margin: 10px;
+        }
+
+        #start-screen h1 { color: var(--accent-purple); font-size: 2.8rem; margin-bottom: 15px; font-weight: 800; }
+        #start-screen p { color: var(--text-main); font-size: 1.2rem; margin-bottom: 35px; opacity: 0.8; }
+
+        .question-block {
+            background: rgba(255, 255, 255, 0.7);
+            margin-bottom: 40px;
+            padding: 30px;
+            border-radius: 25px;
+            border: 1px solid white;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.03);
+            text-align: center;
+        }
+
+        .question-text { font-size: 1.4rem; margin-bottom: 25px; color: var(--accent-purple); font-weight: bold; }
+
+        .options-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 15px; 
+            max-width: 700px;
+            margin: 0 auto 25px auto;
+        }
+
+        .option-item {
+            background: white;
+            border: 2px solid #eee;
+            padding: 18px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: 0.3s;
+            color: var(--text-main);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .option-item:hover { border-color: var(--accent-purple); background: var(--accent-lavender); }
+        .option-item.selected { background: var(--accent-purple); color: white; border-color: var(--accent-purple); }
+        
+        .correct-ans { background: var(--success) !important; color: white !important; border-color: var(--success) !important; }
+        .wrong-ans { background: var(--error) !important; color: white !important; border-color: var(--error) !important; }
+
+        .visual-img {
+            margin: 20px auto 0 auto;
+            max-width: 380px;
+            width: 100%;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            display: none;
+            animation: popUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popUp {
+            from { opacity: 0; transform: scale(0.9) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .btn-main {
+            background: var(--accent-purple);
+            color: white;
+            border: none;
+            padding: 18px 55px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1.15rem;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(155, 89, 182, 0.3);
+            transition: 0.3s;
+        }
+
+        .btn-main:hover { background: #8e44ad; transform: translateY(-2px); box-shadow: 0 10px 25px rgba(155, 89, 182, 0.4); }
+
+        input[type="text"] {
+            padding: 15px;
+            width: 85%;
+            max-width: 400px;
+            border-radius: 15px;
+            border: 2px solid var(--accent-lavender);
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+            text-align: center;
+            outline: none;
+        }
+
+        .footer {
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.8);
+            text-align: center;
+            color: var(--accent-purple);
+            font-weight: 500;
+            font-size: 0.9rem;
+            border-top: 1px solid var(--accent-lavender);
+        }
+
+        #results-area { display: none; padding: 40px 0; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <div id="quiz-window">
+        <div class="header">
+            <h2 id="quiz-title">✨ Праздничный Квиз к 8 Марта 🦋</h2>
+            <div id="timer-display" style="font-weight: bold; display:none; font-size: 1.2rem;">⏱️ 00:00</div>
+        </div>
+
+        <div class="content" id="scroll-content">
+            
+            <div id="start-screen">
+                <h1>🌸 Привет, Солнышко! 🦋</h1>
+                <p>Добро пожаловать в мир красоты и весенних загадок!</p>
+                <input type="text" id="player-name" placeholder="Как тебя зовут? ✨">
+                <br>
+                <button class="btn-main" onclick="startQuiz()">Начать праздник! 🚀</button>
+            </div>
+
+            <div id="questions-container" style="display:none;"></div>
+
+            <div id="finish-btn-wrapper" style="display:none; text-align: center; padding: 20px 0 60px 0;">
+                <button class="btn-main" onclick="finishQuiz()">Узнать результат! 🎉</button>
+            </div>
+
+            <div id="results-area">
+                <h1 id="congrats-text" style="color: var(--accent-purple); margin-bottom: 20px;">Поздравляем! 🎊</h1>
+                <div id="final-stats" style="font-size: 1.3rem; line-height: 1.6; margin-bottom: 30px;"></div>
+                <button class="btn-main" onclick="location.reload()">Играть еще раз 🔄</button>
+            </div>
+        </div>
+
+        <div class="footer">🌷 Пусть весна всегда будет в твоем сердце! 2026 🌷</div>
+    </div>
+
+    <script>
+        const questionsData = [
+            { q: "Какой цветок расцветает самым первым, даже из-под снега? ❄️", a: ["Тюльпан 🌷", "Подснежник 🤍", "Роза 🌹", "Нарцисс 🌼"], c: 1 },
+            { q: "Главный символ весны в желтых пушистых шариках — это... ✨", a: ["Мимоза 🌼", "Одуванчик ☀️", "Верба 🌿", "Жасмин 🌸"], c: 0 },
+            { q: "Как зовут сказочную героиню, которая родилась в цветке? 👸", a: ["Золушка ✨", "Дюймовочка 🌷", "Русалочка 🧜‍♀️", "Рапунцель 👱‍♀️"], c: 1 },
+            { q: "В какой весенний день принято поздравлять всех мам и бабушек? 💝", a: ["1 Мая 🎈", "8 Марта 🎀", "14 Февраля ❤️", "1 Апреля 🤡"], c: 1 },
+            { q: "Какой цвет получится, если смешать страстный красный и чистый белый? 🎨", a: ["Сиреневый 💜", "Розовый 🌸", "Оранжевый 🧡", "Бежевый 🥯"], c: 1 },
+            { q: "Кто стала первой в мире женщиной-космонавтом? 🚀", a: ["Валентина Терешкова", "Мария Кюри", "Коко Шанель", "Ада Лавлейс"], c: 0 },
+            { q: "Как называется праздничное украшение на голову из цветов? 👑", a: ["Корона 👸", "Венок 🌸", "Диадема ✨", "Заколка 🎀"], c: 1 },
+            { q: "Какой драгоценный камень сравнивают с прозрачной капелью? 💎", a: ["Изумруд 💚", "Бриллиант 💎", "Янтарь 🧡", "Сапфир 💙"], c: 1 },
+            { q: "Какое насекомое называют 'ожившим цветком' за яркие крылья? 🦋", a: ["Стрекоза 🛸", "Бабочка 🦋", "Пчела 🐝", "Божья коровка 🐞"], c: 1 },
+            { q: "Что важнее всего подарить близким в этот прекрасный день? ❤️", a: ["Внимание и тепло ❤️", "Сладости 🍬", "Сувениры 🎁", "Открытку 💌"], c: 0 }
+        ];
+
+        let seconds = 0;
+        let timerInterval;
+        let userAnswers = new Array(questionsData.length).fill(null);
+        let quizFinished = false;
+
+        function startQuiz() {
+            const name = document.getElementById('player-name').value.trim();
+            if (!name) return alert("Милая, введи свое имя! ✨");
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('questions-container').style.display = 'block';
+            document.getElementById('finish-btn-wrapper').style.display = 'block';
+            document.getElementById('timer-display').style.display = 'block';
+            renderQuestions();
+            startTimer();
+        }
+
+        function renderQuestions() {
+            const container = document.getElementById('questions-container');
+            container.innerHTML = '';
+            questionsData.forEach((data, qIdx) => {
+                const block = document.createElement('div');
+                block.className = 'question-block';
+                const qText = document.createElement('div');
+                qText.className = 'question-text';
+                qText.innerText = `${qIdx + 1}. ${data.q}`;
+                block.appendChild(qText);
+                const grid = document.createElement('div');
+                grid.className = 'options-grid';
+                data.a.forEach((opt, aIdx) => {
+                    const div = document.createElement('div');
+                    div.className = 'option-item';
+                    div.innerText = opt;
+                    div.onclick = () => selectOption(qIdx, aIdx, div);
+                    grid.appendChild(div);
+                });
+                block.appendChild(grid);
+                const img = document.createElement('img');
+                img.className = 'visual-img';
+                img.id = `img-res-${qIdx}`;
+                img.src = `images/${qIdx + 1}.png`;
+                block.appendChild(img);
+                container.appendChild(block);
+            });
+        }
+
+        function selectOption(qIdx, aIdx, element) {
+            if (quizFinished) return;
+            userAnswers[qIdx] = aIdx;
+            const parent = element.parentElement;
+            Array.from(parent.children).forEach(child => child.classList.remove('selected'));
+            element.classList.add('selected');
+            const img = document.getElementById(`img-res-${qIdx}`);
+            img.style.display = (aIdx === questionsData[qIdx].c) ? 'block' : 'none';
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                seconds++;
+                const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+                const s = (seconds % 60).toString().padStart(2, '0');
+                document.getElementById('timer-display').innerText = `⏱️ ${m}:${s}`;
+            }, 1000);
+        }
+
+        // Функция салюта из конфетти
+        function launchConfetti() {
+            var duration = 3 * 1000;
+            var end = Date.now() + duration;
+
+            (function frame() {
+              confetti({
+                particleCount: 3,
+                angle: 60,
+                spread: 55,
+                origin: { x: 0 },
+                colors: ['#ff69b4', '#9b59b6', '#f3e5f5']
+              });
+              confetti({
+                particleCount: 3,
+                angle: 120,
+                spread: 55,
+                origin: { x: 1 },
+                colors: ['#ff69b4', '#9b59b6', '#f3e5f5']
+              });
+
+              if (Date.now() < end) {
+                requestAnimationFrame(frame);
+              }
+            }());
+        }
+
+        function finishQuiz() {
+            if (userAnswers.includes(null)) {
+                alert("Ой! Ответь на все вопросы, чтобы увидеть итоги! ✨");
+                return;
+            }
+            quizFinished = true;
+            clearInterval(timerInterval);
+            let score = 0;
+            questionsData.forEach((data, qIdx) => {
+                const block = document.getElementById(`img-res-${qIdx}`).parentElement;
+                const options = block.querySelectorAll('.option-item');
+                options.forEach((opt, aIdx) => {
+                    opt.onclick = null;
+                    if (aIdx === data.c) opt.classList.add('correct-ans');
+                    if (userAnswers[qIdx] === aIdx && aIdx !== data.c) opt.classList.add('wrong-ans');
+                });
+                if (userAnswers[qIdx] === data.c) score++;
+            });
+
+            // Запускаем конфетти!
+            launchConfetti();
+
+            document.getElementById('finish-btn-wrapper').style.display = 'none';
+            const resArea = document.getElementById('results-area');
+            resArea.style.display = 'block';
+            document.getElementById('final-stats').innerHTML = `
+                <b>${document.getElementById('player-name').value}</b>, результат: <b>${score} из 10</b>!<br>
+                Время: <b>${document.getElementById('timer-display').innerText.replace('⏱️ ', '')}</b>
+            `;
+            setTimeout(() => resArea.scrollIntoView({ behavior: 'smooth' }), 300);
+        }
+    </script>
+</body>
+</html>
